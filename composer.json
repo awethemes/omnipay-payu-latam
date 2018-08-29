@@ -1,0 +1,29 @@
+{
+    "name": "awethemes/omnipay-payu-latam",
+    "description": "PayU Latam provider for Omnipay",
+    "type": "library",
+    "license": "MIT",
+    "homepage": "https://github.com/awethemes/omnipay-payu-latam",
+    "authors": [
+        {
+            "name": "Nguyen Van Anh",
+            "email": "anhskohbo@gmail.com"
+        }
+    ],
+    "require": {
+        "omnipay/common": "^3.0"
+    },
+    "require-dev": {
+        "omnipay/tests": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Omnipay\\PayULatam\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Omnipay\\PayULatam\\": "tests/"
+        }
+    }
+}
