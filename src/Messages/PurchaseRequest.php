@@ -4,6 +4,9 @@ namespace Omnipay\PayULatam\Messages;
 
 class PurchaseRequest extends AbstractRequest
 {
+    /**
+     * {@inheritdoc}
+     */
     public function getData()
     {
         $this->validate(
@@ -15,18 +18,15 @@ class PurchaseRequest extends AbstractRequest
             'apiKey'
         );
 
-        $tax     = $this->getParameter('tax');
-        $taxBase = $this->getParameter('taxBase');
-
         return [
             'merchantId'      => $this->getParameter('merchantId'),
             'signature'       => $this->generateSignature(),
             'accountId'       => $this->getParameter('accountId'),
             'referenceCode'   => $this->getTransactionId(),
             'description'     => $this->getDescription() ?: $this->getTransactionId(),
-            'amount'          => str_replace('.00', '', $this->getAmount()),
-            'tax'             => str_replace('.00', '', $this->formatCurrency($tax ? $tax : 0)),
-            'taxReturnBase'   => str_replace('.00', '', $this->formatCurrency($taxBase ? $taxBase : 0)),
+            'amount'          => $this->trimZeros($this->getAmount()),
+            'tax'             => $this->trimZeros($this->formatCurrency($this->getParameter('tax') ?: 0)),
+            'taxReturnBase'   => $this->trimZeros($this->formatCurrency($this->getParameter('taxBase') ?: 0)),
             'buyerEmail'      => $this->getParameter('buyerEmail'),
             'test'            => $this->getTestMode() ? 1 : 0,
             'responseUrl'     => $this->getReturnUrl(),
@@ -35,20 +35,17 @@ class PurchaseRequest extends AbstractRequest
         ];
     }
 
-    protected function generateSignature()
+    /**
+     * {@inheritdoc}
+     */
+    public function sendData($data)
     {
-        $amount = $this->getAmount();
-        $amount = str_replace('.00', '', $amount);
+        return $this->response = new PurchaseResponse($this, $data);
+    }
 
-        $args   = [
-            $this->getParameter('apiKey'),
-            $this->getParameter('merchantId'),
-            $this->getTransactionId(),
-            $amount,
-            $this->getCurrency(),
-        ];
-
-        return strtolower(md5(implode('~', $args)));
+    public function setApiKey($apiKey)
+    {
+        $this->parameters->set('apiKey', $apiKey);
     }
 
     public function setMerchantId($merchantId)
@@ -71,13 +68,16 @@ class PurchaseRequest extends AbstractRequest
         $this->parameters->set('buyerEmail', $buyerEmail);
     }
 
-    public function setApiKey($apiKey)
+    protected function generateSignature()
     {
-        $this->parameters->set('apiKey', $apiKey);
-    }
+        $args = [
+            $this->getParameter('apiKey'),
+            $this->getParameter('merchantId'),
+            $this->getTransactionId(),
+            $this->trimZeros($this->getAmount()),
+            $this->getCurrency(),
+        ];
 
-    public function sendData($data)
-    {
-        return $this->response = new PurchaseResponse($this, $data);
+        return strtolower(md5(implode('~', $args)));
     }
 }
